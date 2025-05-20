@@ -1,5 +1,6 @@
 package com.technova.shopverse.services;
 
+import com.technova.shopverse.dtos.ProductDTO;
 import com.technova.shopverse.models.Product;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ public interface ProductService {
     Product createProduct(Product product);
     Product updateProduct(Long id, Product product);
     void deleteProduct(Long id);
-
+    public List<ProductDTO> getAllProductDTOs();
+    List<ProductDTO> getByCategoryId(Long categoryId);
 }
 
