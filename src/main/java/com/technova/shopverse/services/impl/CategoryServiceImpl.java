@@ -1,9 +1,12 @@
 package com.technova.shopverse.services.impl;
 
 import com.technova.shopverse.dtos.CategoryDTO;
+import com.technova.shopverse.dtos.ProductDTO;
 import com.technova.shopverse.models.Category;
+import com.technova.shopverse.models.Product;
 import com.technova.shopverse.repository.CategoryRepository;
 import com.technova.shopverse.services.CategoryService;
+import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,33 +24,61 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Optional<Category> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+    public CategoryDTO getCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .map(CategoryDTO::new)
+                .orElseThrow(() -> (new IllegalArgumentException("Categoría no encontrada")));
     }
 
     @Override
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public CategoryDTO createCategory(CategoryDTO categoryDto) {
+
+        validate(categoryDto);
+
+        Category category = new Category();
+        category.setName(categoryDto.getName());
+        category.setDescription(categoryDto.getDescription());
+
+        return new CategoryDTO(categoryRepository.save(category));
     }
 
     @Override
-    public Category updateCategory(Long id, Category category) {
-//        category.setId(id);
-        return categoryRepository.save(category);
+    public CategoryDTO updateCategory(Long id, CategoryDTO categoryDto) {
+
+        validate(categoryDto);
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
+
+        category.setName(categoryDto.getName());
+        category.setDescription(categoryDto.getDescription());
+
+        return new CategoryDTO(categoryRepository.save(category));
     }
 
     @Override
     public void deleteCategory(Long id) {
+
+        if (!categoryRepository.existsById(id)){
+            throw new IllegalArgumentException("El Id de la categoría no existe");
+        }
+
         categoryRepository.deleteById(id);
     }
+
     public CategoryDTO getCategoryDTOById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
-        List<String> productNames = category
-                .getProducts()
-                .stream()
-                .map(product -> product.getName())
-                .toList();
         return new CategoryDTO(category);
+    }
+
+    public void validate(CategoryDTO categoryDto){
+        if (categoryDto.getName()==null || categoryDto.getName().isBlank()) {
+            throw new IllegalArgumentException("El nombre de la categoría no puede ser nulo");
+        }
+
+        if (categoryDto.getDescription()==null || categoryDto.getDescription().isBlank()) {
+            throw new IllegalArgumentException("La descripción de la categoría no puede ser nulo");
+        }
     }
 }
